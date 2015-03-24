@@ -31,4 +31,6 @@ class Enemy{
         double attackrange;
         int movementspeed;
         double visionrange;
-}
+};
+
+#endif
