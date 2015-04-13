@@ -34,3 +34,5 @@ class Enemy{
         int movementspeed;
         int visionrange;
 };
+
+#endif
