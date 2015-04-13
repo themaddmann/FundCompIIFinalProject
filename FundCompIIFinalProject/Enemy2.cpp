@@ -44,7 +44,7 @@ int Enemy::pursue(int distance,int xpos,int ypos){
         return 0;
     }
 }
-void Enemey::sound(){
+void Enemy::sound(){
     // play sound
 }
 int Enemy::getenemyX(){
