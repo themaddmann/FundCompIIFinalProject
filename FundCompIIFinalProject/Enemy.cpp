@@ -1,89 +1,70 @@
 /*
  * Final Project
  * Steven Mike & Brian Mann
- * Implementation of Player Class
+ * Implementation for abstract Enemy class
  */
 
 #include <iostream>
 #include <SDL2/SDL.h>
-#include <algorithm>
-#include <iterator>
-#include <string>
-#include <fstream>
-#include <cmath>
-#include "Player.h"
+#include <vector>
+#include "Enemy.h"
 #include "Person.h"
-#include "Level.h"
-#include "Door.h"
-#include "DoorKey.h"
 using namespace std;
 
 //constructor
-Player::Player() : Person(){
-        xpos=20;
-        ypos=20;
-        health=3;
-        speed=5;
-
-	for(int i=0;i<7;i++){
-		keys[i]=0;
-	}
+Enemy::Enemy(int x, int y) : Person(){
+	dmg = 1;
+	range = 3;
+	speed = 5;
+	vision=50;
+	pursuit = false;
+	xpos = x;
+	ypos = y;
 }
 
-//player handles events
-void Player::handleEvent(SDL_Event& e){
+//returns dmg
+int Enemy::getDMG(){
 
-	//If a key was pressed (not including held down keys)
-	if (e.type == SDL_KEYDOWN && e.key.repeat == 0){
-
-		//update velocity
-		switch (e.key.keysym.sym){
-			//double speed if space is pushed
-			case SDLK_SPACE: 
-				speed *= 2;
-				break;
-			case SDLK_DOWN: 
-				yVel += 1;
-				break;
-			case SDLK_UP: 
-				yVel -= 1;
-				break;
-			case SDLK_RIGHT: 
-				xVel += 1;
-				break;
-			case SDLK_LEFT: 
-				xVel -= 1;
-				break;
-		}
-	}
-
-	//if a key is released
-	else if (e.type == SDL_KEYUP && e.key.repeat == 0){
-	
-		//update velocity
-		switch(e.key.keysym.sym){
-			//halve speed if space is released
-			case SDLK_SPACE: 
-				speed /= 2;
-				break;
-			case SDLK_DOWN: 
-				yVel -= 1;
-				break;
-			case SDLK_UP: 
-				yVel += 1;
-				break;
-			case SDLK_RIGHT: 
-				xVel -= 1;
-				break;
-			case SDLK_LEFT: 
-				xVel += 1;
-				break;
-		}
-	}
+	return dmg;
 }
 
-//moves the player
-void Player::move(Level myLVL){
+//returns range
+double Enemy::getRange(){
+
+	return range;
+}
+
+//returns speed
+int Enemy::getSpeed(){
+
+	return speed;
+}
+
+//returns vision
+double Enemy::getVision(){
+
+	return vision;
+}
+
+//returns pursuit
+bool Enemy::inPursuit(){
+
+	return pursuit;
+}
+/*
+//enemy attacks the player, returns true if attack connects
+Player Enemy::attack(Player p){
+
+	//check if player is within attack range
+	if (p.getX() <= xpos + range && p.getX() >= xpos - range)
+		if (p.getY() <= ypos + range && p.getY() > ypos - range){
+			p.hit(dmg);
+		}
+	return p;
+}
+
+//moves enemy based on walls and velocity
+void Enemy::move(Level myLVL){
 
 	//get information for the walls
 	vector< vector<int> > walls = myLVL.getWalls();
@@ -154,60 +135,4 @@ void Player::move(Level myLVL){
 		}
 	}
 }
-
-//player loses health if hit
-//default damage is one
-void Player::hit(int dmg){
-
-	health -= dmg;
-}
-
-//ends the game by exiting the main loop
-bool Player::gameOver(){
-
-	if (health <= 0) return true;
-	else return false;
-}	
-
-//getter and setter functions
-//double Player::getX(){
-
-//        return xpos;
-//}
-
-//double Player::getY(){
-
-//        return ypos;
-//}
-
-int Player::getHealth(){
-
-        return health;
-}
-
-void Player::setX(double newX){
-
-        xpos = newX;
-}
-
-void Player::setY(double newY){
-
-        ypos = newY;
-}
-
-void Player::setHealth(int newHealth){
-
-        health = newHealth;
-}
-
-//returns keys
-int* Player::getKeys(){
-
-	return keys;
-}
-
-//adds a key
-void Player::addKey(int newKey){
-
-	keys[newKey]++;
-}
+*/

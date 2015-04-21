@@ -7,22 +7,24 @@
 #define DOOR_H
 
 #include <iostream>
-#include <SDL2/SDL.h>
-#include <algorithm>
-#include <iterator>
-#include <string>
-#include <fstream>
-#include <cmath>
+#include "DoorKey.h"
 using namespace std;
 
 class Door{
     public:
-        Door(int = 1,int = 0);
-        int isOpen();
-        int isLocked();
-        void setOpen();
-        void setClosed();
+        Door(int,int,int,int); //constructor
+        int isOpen(); //returns open
+        int isLocked(); //returns lock
+	int getType(); //returns keyhole
+	void setLock(int); //sets lock
+	void interact(int[7]); //opens or closes the door based on its state
+	int getX(); //returns xpos;
+	int getY(); //returns ypos;
     private:
-        int lock;
-        int open;
+        int lock; //represents the door being locked
+        int open; //represents the door being open
+	int keyhole; //represents the type of key that needs to be used
+	int xpos, ypos; //represents the location
 };
+
+#endif

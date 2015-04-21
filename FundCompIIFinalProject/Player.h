@@ -9,35 +9,34 @@
 
 #include <iostream>
 #include <SDL2/SDL.h>
-#include <algorithm>
-#include <iterator>
 #include <string>
 #include <fstream>
-#include <cmath>
+#include <vector>
+#include "Person.h"
+#include "Level.h"
 using namespace std;
 
-class Player {
+class Player : public Person {
 
         public:
                 Player();
-                void move();
-                void run();
-                //add function to change angle once more is known about key fun$
+                void move(Level); //moves character based on velocities
+		void handleEvent(SDL_Event&); //player handles events
+		void hit(int = 1); //player loses health if hit
+		bool gameOver(); //If health hits 0, game is over
                 //getter and setter methods
-                double getX();
-                double getY();
+        //        double getX();
+      //          double getY();
                 int getHealth();
                 void setX(double);
                 void setY(double);
                 void setHealth(int);
-
+		int* getKeys(); //returns keys
+		void addKey(int); //adds a key
         private:
-                double xpos;
-                double ypos;
                 int health;
                 double speed;
-                double angle;//direction
-                int running; //boolean
+		int keys[7]; //represents picked up keys
 };
 
 #endif
