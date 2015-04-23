@@ -1,5 +1,5 @@
 // Base class for enemies
-// Brain Mann
+// Brian Mann
 // 3/17/15
 // Enemy.h
 
