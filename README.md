@@ -10,3 +10,5 @@ Controls:
 [↓] = down
 [→] = right
 [space] = run
+
+Run the Makefile to compile the various files and then run the executable
