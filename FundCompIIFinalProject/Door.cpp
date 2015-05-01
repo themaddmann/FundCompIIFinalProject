@@ -49,8 +49,8 @@ void Door::interact(int keys[7]){
 		}
 	}
 
-	
-	if (! lock) open=1 ;
+	//open the door if it is unlocked	
+	if (! lock) open=1;
 }
 
 //returns the keyhole

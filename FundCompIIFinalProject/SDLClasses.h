@@ -10,6 +10,7 @@
 #include <iostream>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
+#include <SDL/SDL_mixer.h>
 #include <string>
 #include <cmath>
 #include "Player.h"
@@ -94,11 +95,18 @@ SDL_Renderer* gRenderer = NULL;
 
 //Scene textures
 LTexture gPlayerTexture;
-LTexture gBackTexture;
+LTexture gLevel1Texture;
+LTexture gLevel2Texture;
+LTexture gLevel3Texture;
+LTexture gWinTexture;
 LTexture gDoorTexture;
 LTexture gKeyTexture;
 LTexture gEnemyTexture;
 LTexture gBlackoutTexture;
+LTexture gCoverTexture;
+LTexture gTitleTexture;
+LTexture gOverTexture;
+
 //sprite clips
 SDL_Rect gPlayerClips[16];
 SDL_Rect gDoorClips[32];
@@ -107,6 +115,15 @@ SDL_Rect gEnemyClips[16];
 
 //background clip
 SDL_Rect gBackgroundClip;
+
+//The music that will be played
+Mix_Music *gMusic = NULL;
+Mix_Music *gChase = NULL; 
+
+//Sound effects that will be played
+Mix_Chunk *gDoorOpen = NULL;
+Mix_Chunk *gKey = NULL;
+
 
 LTexture::LTexture()
 {
@@ -262,7 +279,7 @@ bool init()
 	bool success = true;
 
 	//Initialize SDL
-	if( SDL_Init( SDL_INIT_VIDEO ) < 0 )
+	if( SDL_Init( SDL_INIT_VIDEO | SDL_INIT_AUDIO ) < 0 )
 	{
 		printf( "SDL could not initialize! SDL Error: %s\n", SDL_GetError() );
 		success = false;
@@ -285,7 +302,7 @@ bool init()
 		else
 		{
 			//Create vsynced renderer for window
-			gRenderer = SDL_CreateRenderer( gWindow, -1, SDL_RENDERER_SOFTWARE );
+			gRenderer = SDL_CreateRenderer( gWindow, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC );
 			if( gRenderer == NULL )
 			{
 				printf( "Renderer could not be created! SDL Error: %s\n", SDL_GetError() );
@@ -303,6 +320,11 @@ bool init()
 					printf( "SDL_image could not initialize! SDL_image Error: %s\n", IMG_GetError() );
 					success = false;
 				}
+
+				//Initialize SDL_Mixer
+				if( Mix_OpenAudio(44100,MIX_DEFAULT_FORMAT, 2, 2048000) < 0){
+					printf("SDL_mixer could not initialize! SDL_mixer Error: %s\n", Mix_GetError());
+				}
 			}
 		}
 	}
@@ -315,8 +337,26 @@ bool loadMedia()
 	//Loading success flag
 	bool success = true;
 
-	//Load press texture
-	if( !gBackTexture.loadFromFile( "images/level0.png" ) )
+
+	//Load Title and Cover
+	if( !gCoverTexture.loadFromFile("images/cover.png")){
+		printf( "Failed to load press texture!\n" );
+		success = false;
+	}
+	
+	if( !gTitleTexture.loadFromFile("images/title.png")){
+		printf( "Failed to load press texture!\n" );
+		success = false;
+	}
+
+	if( !gWinTexture.loadFromFile("images/win.png")){
+		printf( "Failed to load press texture!\n" );
+		success = false;
+	}
+	
+
+	//Load level 1 texture
+	if( !gLevel1Texture.loadFromFile( "images/level1.png" ) )
 	{
 		printf( "Failed to load press texture!\n" );
 		success = false;
@@ -327,6 +367,19 @@ bool loadMedia()
 		gBackgroundClip.w=SCREEN_WIDTH;
 		gBackgroundClip.h=SCREEN_HEIGHT;
 	}
+	//Load level 2 texture
+	if( !gLevel2Texture.loadFromFile( "images/level2.png" ) )
+	{
+		printf( "Failed to load press texture!\n" );
+		success = false;
+	}
+
+	//Load level 3 texture
+	if( !gLevel3Texture.loadFromFile( "images/level3.png" ) )
+	{
+		printf( "Failed to load press texture!\n" );
+		success = false;
+	}
 	
 	//Load up texture
 	if( !gPlayerTexture.loadFromFile( "images/player.png" ) )
@@ -335,23 +388,175 @@ bool loadMedia()
 		success = false;
 	}
 	else {
-		gPlayerClips[0].x=0;
-		gPlayerClips[0].y=0;
+		gPlayerClips[0].x=2;
+		gPlayerClips[0].y=1;
 		gPlayerClips[0].w=PLAYER_WIDTH;
 		gPlayerClips[0].h=PLAYER_HEIGHT;
+
+		gPlayerClips[1].x=28;
+		gPlayerClips[1].y=2;
+		gPlayerClips[1].w=PLAYER_WIDTH;
+		gPlayerClips[1].h=PLAYER_HEIGHT;
+
+		gPlayerClips[2].x=54;
+		gPlayerClips[2].y=1;
+		gPlayerClips[2].w=PLAYER_WIDTH;
+		gPlayerClips[2].h=PLAYER_HEIGHT;
+
+		gPlayerClips[3].x=81;
+		gPlayerClips[3].y=2;
+		gPlayerClips[3].w=PLAYER_WIDTH;
+		gPlayerClips[3].h=PLAYER_HEIGHT;
+
+		gPlayerClips[4].x=1;
+		gPlayerClips[4].y=35;
+		gPlayerClips[4].w=PLAYER_WIDTH;
+		gPlayerClips[4].h=PLAYER_HEIGHT;
+
+		gPlayerClips[5].x=28;
+		gPlayerClips[5].y=35;
+		gPlayerClips[5].w=PLAYER_WIDTH;
+		gPlayerClips[5].h=PLAYER_HEIGHT;
+
+		gPlayerClips[6].x=53;
+		gPlayerClips[6].y=35;
+		gPlayerClips[6].w=PLAYER_WIDTH;
+		gPlayerClips[6].h=PLAYER_HEIGHT;
+
+		gPlayerClips[7].x=81;
+		gPlayerClips[7].y=35;
+		gPlayerClips[7].w=PLAYER_WIDTH;
+		gPlayerClips[7].h=PLAYER_HEIGHT;
+
+		gPlayerClips[8].x=2;
+		gPlayerClips[8].y=68;
+		gPlayerClips[8].w=PLAYER_WIDTH;
+		gPlayerClips[8].h=PLAYER_HEIGHT;
+
+		gPlayerClips[9].x=28;
+		gPlayerClips[9].y=68;
+		gPlayerClips[9].w=PLAYER_WIDTH;
+		gPlayerClips[9].h=PLAYER_HEIGHT;
+
+		gPlayerClips[10].x=54;
+		gPlayerClips[10].y=68;
+		gPlayerClips[10].w=PLAYER_WIDTH;
+		gPlayerClips[10].h=PLAYER_HEIGHT;
+
+		gPlayerClips[11].x=81;
+		gPlayerClips[11].y=68;
+		gPlayerClips[11].w=PLAYER_WIDTH;
+		gPlayerClips[11].h=PLAYER_HEIGHT;
+
+		gPlayerClips[12].x=2;
+		gPlayerClips[12].y=102;
+		gPlayerClips[12].w=PLAYER_WIDTH;
+		gPlayerClips[12].h=PLAYER_HEIGHT;
+
+		gPlayerClips[13].x=28;
+		gPlayerClips[13].y=103;
+		gPlayerClips[13].w=PLAYER_WIDTH;
+		gPlayerClips[13].h=PLAYER_HEIGHT;
+
+		gPlayerClips[14].x=54;
+		gPlayerClips[14].y=102;
+		gPlayerClips[14].w=PLAYER_WIDTH;
+		gPlayerClips[14].h=PLAYER_HEIGHT;
+
+		gPlayerClips[15].x=81;
+		gPlayerClips[15].y=103;
+		gPlayerClips[15].w=PLAYER_WIDTH;
+		gPlayerClips[15].h=PLAYER_HEIGHT;
+
 	}
 
 	//Load Enemy
-	if( !gEnemyTexture.loadFromFile( "images/player.png" ) )
+	if( !gEnemyTexture.loadFromFile( "images/enemy.png" ) )
 	{
 		printf( "Failed to load up texture!\n" );
 		success = false;
 	}
 	else {
-		gEnemyClips[0].x=0;
+		gEnemyClips[0].x=38;
 		gEnemyClips[0].y=0;
 		gEnemyClips[0].w=PLAYER_WIDTH;
 		gEnemyClips[0].h=PLAYER_HEIGHT;
+
+		gEnemyClips[1].x=2;
+		gEnemyClips[1].y=1;
+		gEnemyClips[1].w=PLAYER_WIDTH;
+		gEnemyClips[1].h=PLAYER_HEIGHT;
+
+		gEnemyClips[2].x=38;
+		gEnemyClips[2].y=0;
+		gEnemyClips[2].w=PLAYER_WIDTH;
+		gEnemyClips[2].h=PLAYER_HEIGHT;
+
+		gEnemyClips[3].x=74;
+		gEnemyClips[3].y=0;
+		gEnemyClips[3].w=PLAYER_WIDTH;
+		gEnemyClips[3].h=PLAYER_HEIGHT;
+
+		gEnemyClips[4].x=37;
+		gEnemyClips[4].y=35;
+		gEnemyClips[4].w=PLAYER_WIDTH;
+		gEnemyClips[4].h=PLAYER_HEIGHT;
+
+		gEnemyClips[5].x=1;
+		gEnemyClips[5].y=36;
+		gEnemyClips[5].w=PLAYER_WIDTH;
+		gEnemyClips[5].h=PLAYER_HEIGHT;
+
+		gEnemyClips[6].x=37;
+		gEnemyClips[6].y=35;
+		gEnemyClips[6].w=PLAYER_WIDTH;
+		gEnemyClips[6].h=PLAYER_HEIGHT;
+
+		gEnemyClips[7].x=73;
+		gEnemyClips[7].y=36;
+		gEnemyClips[7].w=PLAYER_WIDTH;
+		gEnemyClips[7].h=PLAYER_HEIGHT;
+
+		gEnemyClips[8].x=39;
+		gEnemyClips[8].y=71;
+		gEnemyClips[8].w=PLAYER_WIDTH;
+		gEnemyClips[8].h=PLAYER_HEIGHT;
+
+		gEnemyClips[9].x=3;
+		gEnemyClips[9].y=72;
+		gEnemyClips[9].w=PLAYER_WIDTH;
+		gEnemyClips[9].h=PLAYER_HEIGHT;
+
+		gEnemyClips[10].x=39;
+		gEnemyClips[10].y=71;
+		gEnemyClips[10].w=PLAYER_WIDTH;
+		gEnemyClips[10].h=PLAYER_HEIGHT;
+
+		gEnemyClips[11].x=75;
+		gEnemyClips[11].y=72;
+		gEnemyClips[11].w=PLAYER_WIDTH;
+		gEnemyClips[11].h=PLAYER_HEIGHT;
+
+		gEnemyClips[12].x=38;
+		gEnemyClips[12].y=106;
+		gEnemyClips[12].w=PLAYER_WIDTH;
+		gEnemyClips[12].h=PLAYER_HEIGHT;
+
+		gEnemyClips[13].x=2;
+		gEnemyClips[13].y=107;
+		gEnemyClips[13].w=PLAYER_WIDTH;
+		gEnemyClips[13].h=PLAYER_HEIGHT;
+
+		gEnemyClips[14].x=38;
+		gEnemyClips[14].y=106;
+		gEnemyClips[14].w=PLAYER_WIDTH;
+		gEnemyClips[14].h=PLAYER_HEIGHT;
+
+		gEnemyClips[15].x=74;
+		gEnemyClips[15].y=107;
+		gEnemyClips[15].w=PLAYER_WIDTH;
+		gEnemyClips[15].h=PLAYER_HEIGHT;
+
 	}
 
 	//Load door
@@ -495,18 +700,70 @@ bool loadMedia()
 		success = false;
 	}
 
+	//Load Game Over
+	if( !gOverTexture.loadFromFile( "images/gameOver.png" ) )
+	{
+		printf( "Failed to load up texture!\n" );
+		success = false;
+	}
+	
+
+	//Load music
+//	gMusic = Mix_LoadMUS("DoorOpen.wav");
+	if (gMusic == NULL){
+	//	printf("Failed to load music! SDL_mixer Error: %s\n", Mix_GetError() );
+       // success = false;
+    	}
+
+//	gChase = Mix_LoadMUS("sounds/Chase.wav");
+	if (gChase == NULL){
+//		printf("Failed to load chase music! SDL_mixer Error: %s\n", Mix_GetError() );
+  //      success = false;
+    	}
+
+	//Load Sound Effects
+	gDoorOpen = Mix_LoadWAV("sounds/DoorOpen.wav");
+	if (gDoorOpen == NULL){
+		printf("Failed to load door sfx! SDL_mixer Error: %s\n", Mix_GetError() );
+        success = false;
+    	}
+
+	gKey = Mix_LoadWAV("sounds/Key.wav");
+	if (gKey == NULL){
+		printf("Failed to load key sfx! SDL_mixer Error: %s\n", Mix_GetError() );
+        success = false;
+    	}
+
 	return success;
 }
 
 void close()
 {
 	//Free loaded images
-	gBackTexture.free();
+	gCoverTexture.free();
+	gTitleTexture.free();
+	gLevel1Texture.free();
+	gLevel2Texture.free();
+	gLevel3Texture.free();
 	gPlayerTexture.free();
 	gBlackoutTexture.free();
 	gDoorTexture.free();
 	gKeyTexture.free();
 	gEnemyTexture.free();
+	gOverTexture.free();
+	gWinTexture.free();
+
+	//Free sound effects
+	Mix_FreeChunk(gKey);
+	Mix_FreeChunk(gDoorOpen);
+	gKey = NULL;
+	gDoorOpen = NULL;
+
+	//Free music
+	Mix_FreeMusic(gMusic);
+	Mix_FreeMusic(gChase);
+	gMusic = NULL;
+	gChase = NULL;
 	
 	//Destroy window	
 	SDL_DestroyRenderer( gRenderer );
@@ -515,6 +772,7 @@ void close()
 	gRenderer = NULL;
 
 	//Quit SDL subsystems
+	Mix_Quit();
 	IMG_Quit();
 	SDL_Quit();
 }

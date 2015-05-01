@@ -30,6 +30,7 @@ class Player : public Person {
                 int getHealth();
                 void setX(double);
                 void setY(double);
+		void setSpeed(double);
                 void setHealth(int);
 		int* getKeys(); //returns keys
 		void addKey(int); //adds a key

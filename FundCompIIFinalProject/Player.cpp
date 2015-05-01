@@ -165,7 +165,15 @@ void Player::hit(int dmg){
 //ends the game by exiting the main loop
 bool Player::gameOver(){
 
-	if (health <= 0) return true;
+	if (health <= 0){
+
+		//reset keys	
+		for(int i=0;i<7;i++){
+			keys[i]=0;
+		}
+
+		return true;
+	}
 	else return false;
 }	
 
@@ -198,6 +206,12 @@ void Player::setY(double newY){
 void Player::setHealth(int newHealth){
 
         health = newHealth;
+}
+
+//sets the speed
+void Player::setSpeed(double s){
+	
+	speed = s;
 }
 
 //returns keys

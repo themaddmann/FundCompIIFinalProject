@@ -20,7 +20,10 @@ class Person{
 		virtual void move(Level) = 0; //moves object based on Level information
 		double getX(); //returns xposition
 		double getY(); //returns yposition
-		
+		double getXVel(); //returns xVel
+		double getYVel(); //returns yVel
+		void setYVel(double); //sets yVel		
+		void setXVel(double); //sets xVel		
 	protected:
 		double xpos; //xposition
 		double ypos; //yposition

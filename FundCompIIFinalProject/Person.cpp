@@ -25,7 +25,29 @@ double Person::getX(){
 }
 
 //get y position
-double Person:: getY(){
+double Person::getY(){
 
 	return ypos;
+}
+
+//get xVel
+double Person::getXVel(){
+	return xVel;
+}
+
+//get yVel
+double Person::getYVel(){
+	return yVel;
+}
+
+//set Y Velocity
+void Person::setYVel(double y){
+
+	yVel = y;
+}
+
+//set X Velocity
+void Person::setXVel(double x){
+
+	xVel = x;
 }

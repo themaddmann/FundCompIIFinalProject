@@ -9,15 +9,18 @@
 #include <vector>
 #include "Enemy.h"
 #include "Person.h"
+#include "Player.h"
+#include "Level.h"
+#include <cmath>
 using namespace std;
 
 //constructor
-Enemy::Enemy(int x, int y) : Person(){
-	dmg = 1;
-	range = 3;
-	speed = 5;
-	vision=50;
-	pursuit = false;
+Enemy::Enemy(int x, int y, int d, int r, int s, int v, bool p) : Person(){
+	dmg = d;
+	range = r;
+	speed = s;
+	vision = v;
+	pursuit = p;
 	xpos = x;
 	ypos = y;
 }
@@ -51,15 +54,11 @@ bool Enemy::inPursuit(){
 
 	return pursuit;
 }
-/*
+
 //enemy attacks the player, returns true if attack connects
 Player Enemy::attack(Player p){
 
-	//check if player is within attack range
-	if (p.getX() <= xpos + range && p.getX() >= xpos - range)
-		if (p.getY() <= ypos + range && p.getY() > ypos - range){
-			p.hit(dmg);
-		}
+	p.hit(dmg);
 	return p;
 }
 
@@ -92,9 +91,7 @@ void Enemy::move(Level myLVL){
 			block.clear();
 		}
 	}
-	
-	//update position based on speed and velocity
-	
+
 	//update x
 	xpos += speed * xVel;
 
@@ -135,4 +132,226 @@ void Enemy::move(Level myLVL){
 		}
 	}
 }
-*/
+
+
+//checks the player's position relative to the enemy's and updates enemy 
+void Enemy::update(Level myLVL, Player *p){
+
+
+	//set velocities to 0
+	xVel = 0;
+	yVel = 0;
+	//get Player location
+	double pX = (*p).getX();
+	double pY = (*p).getY();
+
+	//see if the player is within vision range
+	if (pX <= (xpos) + vision && pX >= (xpos) - vision){
+		if (pY <= (ypos) + vision && pY >= (ypos) - vision){
+
+			pursuit = true;
+		}
+	}
+
+	else pursuit = false;
+
+	if (pursuit){
+
+		//see if player is within attack range
+		if((pX <= (xpos) + range && pX >= (xpos) - range)&&(pY <= (ypos) + range && pY >= (ypos) - range)){
+
+				*p = attack(*p);
+		}
+
+		else{
+			//have enemy chase player
+			updateVelocity(myLVL, pX,pY);
+//			if (pX > xpos) xVel = 1;
+//			else if (pX < xpos) xVel = -1;
+//			if (pY > ypos) yVel = 1;
+//			else if (pY < ypos) yVel = -1;
+		}
+
+	}
+}
+
+//finds the distance between two points
+double Enemy::distance(double x1, double y1, double x2, double y2){
+
+	double x = pow(x2-x1,2.0);
+	double y = pow(y2-y1,2.0);
+	double dist = sqrt(x+y);
+	return dist;
+}
+
+//updates velocity to get shortest path to player considering placement of walls
+void Enemy::updateVelocity(Level myLVL, double pX, double pY){
+
+
+	//Don't want the enemy to continually run into walls, so we need to check all possible velocities to see which combo will bring the enemy closest to the player
+	double oDist = distance(xpos,ypos,pX,pY);
+	double dist = oDist;
+	double newDist;
+	int x = 0;
+	int y = 0;
+	//store original position
+	double ox = xpos;
+	double oy = ypos;
+	
+	
+	//set new potential velocity
+	xVel = 1;
+	yVel = 1;
+	//move enemy
+	move(myLVL);
+	//find new distance
+	newDist = distance(xpos,ypos,pX,pY);
+	//see if new distance is shorter
+	if (newDist < dist){
+		dist = newDist;
+		x = 1;
+		y = 1;
+	}
+	//move enemy back to original spot
+	xpos = ox;
+	ypos = oy;
+
+	//set new potential velocity
+	xVel = 1;
+	yVel = 0;
+	//move enemy
+	move(myLVL);
+	//find new distance
+	newDist = distance(xpos,ypos,pX,pY);
+	//see if new distance is shorter
+	if (newDist < dist){
+		dist = newDist;
+		x = 1;
+		y = 0;
+	}
+	//move enemy back to original spot
+	xpos = ox;
+	ypos = oy;
+
+	//set new potential velocity
+	xVel = 1;
+	yVel = -1;
+	//move enemy
+	move(myLVL);
+	//find new distance
+	newDist = distance(xpos,ypos,pX,pY);
+	//see if new distance is shorter
+	if (newDist < dist){
+		dist = newDist;
+		x = 1;
+		y = -1;
+	}
+	//move enemy back to original spot
+	xpos = ox;
+	ypos = oy;
+
+	//set new potential velocity
+	xVel = 0;
+	yVel = 1;
+	//move enemy
+	move(myLVL);
+	//find new distance
+	newDist = distance(xpos,ypos,pX,pY);
+	//see if new distance is shorter
+	if (newDist < dist){
+		dist = newDist;
+		x = 0;
+		y = 1;
+	}
+	//move enemy back to original spot
+	xpos = ox;
+	ypos = oy;
+
+	//set new potential velocity
+	xVel = 0;
+	yVel = 0;
+	//move enemy
+	move(myLVL);
+	//find new distance
+	newDist = distance(xpos,ypos,pX,pY);
+	//see if new distance is shorter
+	if (newDist < dist){
+		dist = newDist;
+		x = 0;
+		y = 0;
+	}
+	//move enemy back to original spot
+	xpos = ox;
+	ypos = oy;
+
+	//set new potential velocity
+	xVel = 0;
+	yVel = -1;
+	//move enemy
+	move(myLVL);
+	//find new distance
+	newDist = distance(xpos,ypos,pX,pY);
+	//see if new distance is shorter
+	if (newDist < dist){
+		dist = newDist;
+		x = 0;
+		y = -1;
+	}
+	//move enemy back to original spot
+	xpos = ox;
+	ypos = oy;
+
+	//set new potential velocity
+	xVel = -1;
+	yVel = 1;
+	//move enemy
+	move(myLVL);
+	//find new distance
+	newDist = distance(xpos,ypos,pX,pY);
+	//see if new distance is shorter
+	if (newDist < dist){
+		dist = newDist;
+		x = -1;
+		y = 1;
+	}
+	//move enemy back to original spot
+	xpos = ox;
+	ypos = oy;
+
+	//set new potential velocity
+	xVel = -1;
+	yVel = 0;
+	//move enemy
+	move(myLVL);
+	//find new distance
+	newDist = distance(xpos,ypos,pX,pY);
+	//see if new distance is shorter
+	if (newDist < dist){
+		dist = newDist;
+		x = -1;
+		y = 0;
+	}
+	//move enemy back to original spot
+	xpos = ox;
+	ypos = oy;
+
+	//set new potential velocity
+	xVel = -1;
+	yVel = -1;
+	//move enemy
+	move(myLVL);
+	//find new distance
+	newDist = distance(xpos,ypos,pX,pY);
+	//see if new distance is shorter
+	if (newDist < dist){
+		dist = newDist;
+		x = -1;
+		y = -1;
+	}
+	//move enemy back to original spot
+	xpos = ox;
+	ypos = oy;
+
+	xVel = x;
+	yVel = y;
+}
